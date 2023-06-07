@@ -20,6 +20,7 @@ async function criacaoDeContasSemLancamentos(idProduto=526){
 
     let conta = await pierApi.postContas(payloads);
     payloads = Object.assign(payloads, {IdConta: conta.id});
+    await pierApi.postDadosBancariosConta(payloads);
     let cartao = await pierApi.postGerarCartaoGrafica(payloads);
     //console.log(JSON.stringify(cartao))
     payloads = Object.assign(payloads, {IdCartao: cartao.idCartao});
@@ -56,32 +57,6 @@ async function criacaoDeContasComLancamentoAVista(idProduto=526){
     return fullPayload;
 }
 
-async function gerarCartaoMassaVelha(payload={IdConta: id_conta, IdPessoa: id_pessoa}){
-    let pierApi = new PierAPI()
-    let cartao = await pierApi.postGerarCartaoGrafica(payload);
-    payload = Object.assign(payload, {IdCartao: cartao.idCartao});
-
-    await pierApi.postAlterarSenhaCartao(payload);
-    await pierApi.postAlterarEstagio(payload)
-    await pierApi.postDesbloquearCartao(payload)
-
-    // console.log(`iniciando ${JSON.stringify(payload)}`)
-    // let pierApi = new PierAPI()
-    // await pierApi.postGerarCartaoGrafica(payload) //CARTAO GRAFICA
-    //         .then(res => {
-    //             //console.log(res)
-    //             let fullPayload = Object.assign(payload, {IdCartao: res.idCartao})
-    //             pierApi.postAlterarSenhaCartao(fullPayload).then(response => { //ALTERAR SENHA CARTAO
-    //                 //console.log(response)
-    //                 pierApi.postAlterarEstagio(fullPayload)  // ALTERAR ESTAGIO CARTAO
-    //                 .then(response => {
-    //                     //console.log(response)
-    //                     pierApi.postDesbloquearCartao(fullPayload).then(res=> console.log()); //DESBLOQUEAR CARTAO
-    //                 })
-    //             }).catch(err => console.log(err))
-    //         })
-}
-
 //Funcao que Cria 3 contas para cada produto; Conta sem lancamento, Conta com Lancamento Parcelado, Conta com lancamento a Vista
 //para criar mais de uma, basta repetir as chamadas dentro do try
 async function executarCriacaoDeContas(){
@@ -112,45 +87,7 @@ async function executarCriacaoDeContas(){
     }
 }
 
-async function executarGerarCartaoMassaVelha(contas){
-    for(let conta of contas){
-        try{
-            await gerarCartaoMassaVelha(conta)
-            console.log(`feito para ${JSON.stringify(conta)}`)
-        }catch(err) {
-            console.log(`Erro: ${JSON.stringify(err)}, conta ${JSON.stringify(conta)}`)
-        }
-       
-    }
-}
-
-async function executarConsultarDadosImpressao(cartoes){
-    let pierApi = new PierAPI()
-
-    for(cartao of cartoes){
-        try{
-          let response = await pierApi.getConsultarDadosImpressao(cartao)
-          payload = Object.assign(cartao, {NumeroCartao: response.numeroCartao});
-          console.log(`${JSON.stringify(payload)}`);
-        }catch(err){
-            console.log(`Erro:  ${JSON.stringify(err)}, cartao ${JSON.stringify(cartao)}`)
-        }
-        
-    }
-    
-}
-
-
 
 executarCriacaoDeContas().then(()=> console.log('ACABOU'));
-
-// const contas = require('./payload.json');
-
-// for(conta of contas){
-//     console.log(`${conta.IdConta} ${conta.NumeroCartao} ${conta.IdCartao}`)
-// }
-// EXEMPLO: const contas = [{ "IdConta" : 11922136, "IdPessoa" : 10171841 }]
-//executarGerarCartaoMassaVelha(contas).then(() => console.log('feito'))
-//executarConsultarDadosImpressao(contas).then(()=> console.log('PRONTO'));
 
 
